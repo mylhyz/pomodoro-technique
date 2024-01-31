@@ -1,34 +1,88 @@
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.painterResource
+import kotlin.random.Random
+
+const val TIME_25_MINUTES: Int = 25 * 60
+const val TIME_5_MINUTES: Int = 5 * 60
+
+fun Int.format(length: Int): String {
+    val str = this.toString()
+    if (str.length > length) {
+        throw Error("")
+    }
+    if (str.length == length) {
+        return str
+    }
+    var remain = length - str.length
+    var ret = ""
+    while ((remain--) > 0) {
+        ret += "0"
+    }
+    ret += str
+    return ret
+}
+
+fun Int.toTime(): String {
+    val quotient = this / 60
+    val remainder = this % 60
+    return "${quotient.format(2)}:${remainder.format(2)}"
+}
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun App() {
-    MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        val greeting = remember { Greeting().greet() }
-        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
+    var timeLeft by remember { mutableStateOf(TIME_25_MINUTES) } // 持有当前倒计时数据
+    var isRunnable by remember { mutableStateOf(false) } // 是否正在倒计时
+    var isWorking by remember { mutableStateOf(false) } // 是否是工作周期
+    LaunchedEffect(isRunnable) {
+        if (isRunnable) {
+            while (timeLeft > 0) {
+                delay(1000)
+                timeLeft--
             }
-            AnimatedVisibility(showContent) {
-                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(painterResource("compose-multiplatform.xml"), null)
-                    Text("Compose: $greeting")
+        }
+    }
+    MaterialTheme {
+        Column(
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                Text(fontSize = 92.sp, text = timeLeft.toTime())
+            }
+            Box(modifier = Modifier.padding(48.dp), contentAlignment = Alignment.Center) {
+                Button(onClick = {
+                    isRunnable = !isRunnable
+                    if (isRunnable) {
+                        isWorking = !isWorking
+                        if (isWorking) {
+                            timeLeft = TIME_25_MINUTES
+                        } else {
+                            timeLeft = TIME_5_MINUTES
+                        }
+                    }
+                }) {
+                    Text(if (isRunnable) "Stop" else "Start")
                 }
             }
         }
