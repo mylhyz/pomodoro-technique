@@ -15,11 +15,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import kotlin.random.Random
 
 const val TIME_25_MINUTES: Int = 25 * 60
 const val TIME_5_MINUTES: Int = 5 * 60
@@ -68,21 +68,28 @@ fun App() {
             verticalArrangement = Arrangement.Center
         ) {
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                Text(fontSize = 92.sp, text = timeLeft.toTime())
+                Text(
+                    fontSize = if (getPlatform().isPortrait) 96.sp else 128.sp,
+                    text = timeLeft.toTime(),
+                    fontFamily = FontFamily.Monospace
+                )
             }
             Box(modifier = Modifier.padding(48.dp), contentAlignment = Alignment.Center) {
                 Button(onClick = {
                     isRunnable = !isRunnable
                     if (isRunnable) {
                         isWorking = !isWorking
-                        if (isWorking) {
-                            timeLeft = TIME_25_MINUTES
+                        timeLeft = if (isWorking) {
+                            TIME_25_MINUTES
                         } else {
-                            timeLeft = TIME_5_MINUTES
+                            TIME_5_MINUTES
                         }
                     }
                 }) {
-                    Text(if (isRunnable) "Stop" else "Start")
+                    Text(
+                        text = if (isRunnable) "结束专注" else "开始专注",
+                        fontFamily = FontFamily.Serif
+                    )
                 }
             }
         }
