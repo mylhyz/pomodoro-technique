@@ -95,6 +95,10 @@ android {
     dependencies {
         debugImplementation(libs.compose.ui.tooling)
     }
+    // 必须给android加入如下配置才能展示Preview
+    buildFeatures {
+        compose = true
+    }
 }
 
 compose.desktop {
