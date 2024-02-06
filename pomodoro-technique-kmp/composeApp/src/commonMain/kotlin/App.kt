@@ -49,8 +49,8 @@ fun Int.toTime(): String {
 }
 
 enum class Stage {
-    IDLE, // 倒计时开始
-    PAUSE, // 倒计时暂停
+    IDLE, // 倒计时尚未开始
+    PAUSE, // 倒计时进行中，可暂停
     CONTINUE, // 可继续
     GAP // 休息
 }
@@ -58,8 +58,8 @@ enum class Stage {
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun App() {
-    var timeLeft by remember { mutableStateOf(TIME_25_MINUTES) } // 持有当前倒计时数据
     var stage by remember { mutableStateOf(Stage.IDLE) } // 界面
+    var timeLeft by remember { mutableStateOf(TIME_25_MINUTES) } // 持有当前倒计时数据
     var isRunnable by remember { mutableStateOf(false) } // 是否正在倒计时
     var isWorking by remember { mutableStateOf(true) } // 判断是工作时间还是休息时间
     LaunchedEffect(isRunnable) {
@@ -68,6 +68,10 @@ fun App() {
                 delay(1000)
                 timeLeft--
             }
+            // 倒计时结束 DONE
+            isWorking = !isWorking
+            isRunnable = false
+            stage = if (isWorking) Stage.IDLE else Stage.GAP
         }
     }
     MaterialTheme {
@@ -87,6 +91,10 @@ fun App() {
                 when (stage) {
                     Stage.IDLE -> {
                         Button(onClick = {
+                            // 转换到下一阶段
+                            isRunnable = true
+                            timeLeft = TIME_25_MINUTES
+                            isWorking = true
                             stage = Stage.PAUSE
                         }) {
                             Text(
@@ -98,6 +106,8 @@ fun App() {
 
                     Stage.PAUSE -> {
                         Button(onClick = {
+                            isRunnable = false
+                            // 转换到下一阶段
                             stage = Stage.CONTINUE
                         }) {
                             Text(
@@ -110,7 +120,9 @@ fun App() {
                     Stage.CONTINUE -> {
                         Row {
                             Button(onClick = {
-                                stage = Stage.GAP
+                                isRunnable = true
+                                // 转换到下一阶段
+                                stage = Stage.PAUSE
                             }) {
                                 Text(
                                     text = "继续",
@@ -118,7 +130,10 @@ fun App() {
                                 )
                             }
                             Button(onClick = {
-                                stage = Stage.GAP
+                                isRunnable = false
+                                timeLeft = TIME_25_MINUTES
+                                // 转换到下一阶段
+                                stage = Stage.IDLE
                             }) {
                                 Text(
                                     text = "退出",
@@ -131,7 +146,11 @@ fun App() {
                     Stage.GAP -> {
                         Row {
                             Button(onClick = {
-                                stage = Stage.IDLE
+                                isRunnable = true
+                                isWorking = false
+                                timeLeft = TIME_5_MINUTES
+                                // 转换到下一阶段
+                                stage = Stage.PAUSE
                             }) {
                                 Text(
                                     text = "开始短暂休息",
@@ -139,6 +158,8 @@ fun App() {
                                 )
                             }
                             Button(onClick = {
+                                timeLeft = TIME_25_MINUTES
+                                // 转换到下一阶段
                                 stage = Stage.IDLE
                             }) {
                                 Text(
