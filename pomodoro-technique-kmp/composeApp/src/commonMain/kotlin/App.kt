@@ -1,6 +1,7 @@
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -47,12 +48,20 @@ fun Int.toTime(): String {
     return "${quotient.format(2)}:${remainder.format(2)}"
 }
 
+enum class Stage {
+    IDLE, // 倒计时开始
+    PAUSE, // 倒计时暂停
+    CONTINUE, // 可继续
+    GAP // 休息
+}
+
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun App() {
     var timeLeft by remember { mutableStateOf(TIME_25_MINUTES) } // 持有当前倒计时数据
+    var stage by remember { mutableStateOf(Stage.IDLE) } // 界面
     var isRunnable by remember { mutableStateOf(false) } // 是否正在倒计时
-    var isWorking by remember { mutableStateOf(false) } // 是否是工作周期
+    var isWorking by remember { mutableStateOf(true) } // 判断是工作时间还是休息时间
     LaunchedEffect(isRunnable) {
         if (isRunnable) {
             while (timeLeft > 0) {
@@ -75,22 +84,72 @@ fun App() {
                 )
             }
             Box(modifier = Modifier.padding(48.dp), contentAlignment = Alignment.Center) {
-                Button(onClick = {
-                    isRunnable = !isRunnable
-                    if (isRunnable) {
-                        isWorking = !isWorking
-                        timeLeft = if (isWorking) {
-                            TIME_25_MINUTES
-                        } else {
-                            TIME_5_MINUTES
+                when (stage) {
+                    Stage.IDLE -> {
+                        Button(onClick = {
+                            stage = Stage.PAUSE
+                        }) {
+                            Text(
+                                text = "开始专注",
+                                fontFamily = FontFamily.Serif
+                            )
                         }
                     }
-                }) {
-                    Text(
-                        text = if (isRunnable) "结束专注" else "开始专注",
-                        fontFamily = FontFamily.Serif
-                    )
+
+                    Stage.PAUSE -> {
+                        Button(onClick = {
+                            stage = Stage.CONTINUE
+                        }) {
+                            Text(
+                                text = "暂停",
+                                fontFamily = FontFamily.Serif
+                            )
+                        }
+                    }
+
+                    Stage.CONTINUE -> {
+                        Row {
+                            Button(onClick = {
+                                stage = Stage.GAP
+                            }) {
+                                Text(
+                                    text = "继续",
+                                    fontFamily = FontFamily.Serif
+                                )
+                            }
+                            Button(onClick = {
+                                stage = Stage.GAP
+                            }) {
+                                Text(
+                                    text = "退出",
+                                    fontFamily = FontFamily.Serif
+                                )
+                            }
+                        }
+                    }
+
+                    Stage.GAP -> {
+                        Row {
+                            Button(onClick = {
+                                stage = Stage.IDLE
+                            }) {
+                                Text(
+                                    text = "开始短暂休息",
+                                    fontFamily = FontFamily.Serif
+                                )
+                            }
+                            Button(onClick = {
+                                stage = Stage.IDLE
+                            }) {
+                                Text(
+                                    text = "跳过",
+                                    fontFamily = FontFamily.Serif
+                                )
+                            }
+                        }
+                    }
                 }
+
             }
         }
     }
